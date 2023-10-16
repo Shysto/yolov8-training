@@ -1,0 +1,5 @@
+easydict
+torch>=1.8
+torchvision
+torchaudio
+ultralytics

@@ -1,0 +1,6 @@
+.python-version
+
+__pycache__
+
+weights
+datasets
