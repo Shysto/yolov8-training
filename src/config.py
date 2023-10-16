@@ -43,9 +43,18 @@ SUPPORTED_MODELS = (
     'YOLOv8x'
 )
 
-SUPPORTED_DETECTION_MODELS = {model: model.lower() + '.pt' for model in SUPPORTED_MODELS}
+SUPPORTED_TASKS = {
+    'detect': '',
+    'classify': '-cls',
+    #'segment': '-seg',
+    #'pose': '-pose'
+}
 
-SUPPORTED_CLASSIFICATION_MODELS = {model: model.lower() + '-cls.pt' for model in SUPPORTED_MODELS}
+SUPPORTED_TASKS_AND_MODELS = {
+    task: {
+        model: model.lower() + suffix + '.pt' for model in SUPPORTED_MODELS
+    } for task, suffix in SUPPORTED_TASKS.items()
+}
 
 SUPPORTED_OPTIMIZERS = (
     'SGD',

@@ -42,6 +42,7 @@ def update_config(cfg: edict, args: dict) -> edict:
         cfg['training'][k] = args[k]
 
     cfg['training']['device'] = set_device(args['force_cpu'], args['use_multi_gpus'])
+    cfg['task'] = args['task']
     cfg['model'] = args['model']
 
     return cfg
@@ -68,6 +69,8 @@ def check_config(cfg: edict) -> edict:
 
 def get_config() -> edict:
     ap = ArgumentParser()
+    ap.add_argument('-t', '--task', type=str, required=True, choices=SUPPORTED_TASKS,
+        help='Task to perform.')
     ap.add_argument('-m', '--model', type=str, required=True, choices=SUPPORTED_MODELS,
         help='Model to train.')
     ap.add_argument('-s', '--savepath', type=str, dest='project',
@@ -130,15 +133,14 @@ def set_device(force_cpu: bool = False, use_multi_gpus: bool = True):
 
     return device
 
-def get_model(model: str) -> Path:
-    #TODO: add classifier option
-    return WEIGHTS_FOLDER.joinpath(SUPPORTED_DETECTION_MODELS[model])
+def get_model(task: str, model: str) -> Path:
+    return WEIGHTS_FOLDER.joinpath(SUPPORTED_TASKS_AND_MODELS[task][model])
 
 def train(cfg: edict):
-    model_path = get_model(cfg.model)
+    model_path = get_model(cfg.task, cfg.model)
     model = YOLO(model_path)
     #TODO: change dataset
-    results = model.train(data='coco128.yaml', **cfg.training, **cfg.augmentation)
+    results = model.train(data='coco128-seg.yaml', **cfg.training, **cfg.augmentation)
     #TODO: add validation
     #TODO: k-fold validation?
 
@@ -147,7 +149,7 @@ if __name__ == '__main__':
     logger = setup_logger(__name__)
 
     # Update Ultralytics settings
-    settings.update({'weights_dir': str(DATASET_FOLDER), 'datasets_dir': str(WEIGHTS_FOLDER)})
+    settings.update({'weights_dir': str(WEIGHTS_FOLDER), 'datasets_dir': str(DATASET_FOLDER)})
 
     cfg = get_config()
 
