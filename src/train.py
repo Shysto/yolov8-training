@@ -25,7 +25,7 @@ def update_config(cfg: edict, args: dict) -> edict:
     keys_to_update = []
 
     for k, v in args.items():
-        if k in ['config', 'model', 'force_cpu', 'use_multi_gpus']:
+        if k in ['config', 'model', 'force_cpu', 'use_multi_gpus', 'task', 'dataset']:
             continue
 
         if type(v) == bool:
@@ -44,6 +44,7 @@ def update_config(cfg: edict, args: dict) -> edict:
     cfg['training']['device'] = set_device(args['force_cpu'], args['use_multi_gpus'])
     cfg['task'] = args['task']
     cfg['model'] = args['model']
+    cfg['dataset'] = args['dataset']
 
     return cfg
 
@@ -73,6 +74,8 @@ def get_config() -> edict:
         help='Task to perform.')
     ap.add_argument('-m', '--model', type=str, required=True, choices=SUPPORTED_MODELS,
         help='Model to train.')
+    ap.add_argument('-d', '--dataset', type=str, required=True,
+        help=f'Dataset folder (relative to {str(DATASET_FOLDER.absolute())}).')
     ap.add_argument('-s', '--savepath', type=str, dest='project',
         help='Path to the output directory.')
     ap.add_argument('-n', '--name', type=str,
@@ -138,9 +141,8 @@ def get_model(task: str, model: str) -> Path:
 
 def train(cfg: edict):
     model_path = get_model(cfg.task, cfg.model)
-    model = YOLO(model_path)
-    #TODO: change dataset
-    results = model.train(data='coco128-seg.yaml', **cfg.training, **cfg.augmentation)
+    model = YOLO(model_path, task=cfg.task)
+    results = model.train(data=cfg.dataset, **cfg.training, **cfg.augmentation)
     #TODO: add validation
     #TODO: k-fold validation?
 
