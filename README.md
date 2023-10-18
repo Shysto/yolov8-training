@@ -2,7 +2,37 @@
 
 ## Installation
 
+### Local
 
+We recommend to use a virtual environment for Python, so that dependencies are not installed globally. <br>
+Below is an exemple of virtual environment creation and activation using `pyenv`.
+```bash
+pyenv install 3.10.6
+pyenv virtualenv 3.10.6 yolov8-training
+
+# Activate the environment
+pyenv local yolov8-training
+```
+
+Install `pytorch` (version > 3.7) for your environment, as specified on the [officiel website](https://pytorch.org/).
+
+Finally, install the necessary dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+### Docker
+
+The Docker image targets Python version > 3.10 and CUDA version > 11.3.
+
+To start the container, just run:
+```bash
+docker compose build
+docker compose run --rm yolov8
+
+# Activate Python environment inside the container
+source /home/trainer/venv/bin/activate
+```
 
 ## Usage
 

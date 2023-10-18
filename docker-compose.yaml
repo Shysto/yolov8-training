@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  yolov8:
+    image: yolov8:latest
+    container_name: yolov8-training
+    build:
+      context: .
+      dockerfile: Dockerfile
+    shm_size: '2gb' # for pytorch
+    volumes:
+      - ./weights:/app/weights
+      - ./datasets:/app/datasets
+      - ./configs:/app/configs
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    entrypoint: bash
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities:
+                - gpu
+                - utility # nvidia-smi
+                - compute # CUDA

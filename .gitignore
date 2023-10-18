@@ -1,5 +1,7 @@
 .python-version
 .vscode
+.DS_Store
+._*
 
 __pycache__
 
@@ -10,3 +12,4 @@ datasets/*
 !datasets/INFO.txt
 
 *.yaml
+!docker-compose.yaml
