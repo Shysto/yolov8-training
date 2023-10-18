@@ -15,6 +15,7 @@ from config import *
 
 
 def load_config(cfg_file: Path) -> edict:
+    """Loads configuration from a JSON file."""
     cfg = edict()
     try:
         with open(str(cfg_file), 'r') as f:
@@ -26,6 +27,7 @@ def load_config(cfg_file: Path) -> edict:
     return cfg
 
 def update_config(cfg: edict, args: dict) -> edict:
+    """Updates configuration with values passed through the command line arguments."""
     keys_to_update = []
 
     for k, v in args.items():
@@ -54,6 +56,7 @@ def update_config(cfg: edict, args: dict) -> edict:
     return cfg
 
 def check_config(cfg: edict) -> edict:
+    """Performs checks on various configuration parameters."""
     if (type(cfg['training']['pretrained']) == str) and (not Path(cfg['training']['pretrained']).is_file()):
         logger.error(f'Failed to retrieve the pretrained model file {cfg["training"]["pretrained"]}.')
         exit(1)
@@ -127,6 +130,7 @@ def get_config() -> edict:
     return edict(cfg)
 
 def set_device(force_cpu: bool = False, use_multi_gpus: bool = True):
+    """Finds the best device to run the training."""
     if force_cpu:
         return 'cpu'
 
@@ -144,6 +148,7 @@ def set_device(force_cpu: bool = False, use_multi_gpus: bool = True):
     return device
 
 def get_model(task: str, model: str) -> Path:
+    """Gets the model's weights filepath."""
     if Path(model).is_file():
         return Path(model)
 
@@ -155,17 +160,20 @@ def get_model(task: str, model: str) -> Path:
     return WEIGHTS_FOLDER.joinpath(file)
 
 def load_model(task: str, model: str):
+    """Instantiates the model."""
     model_path = get_model(task, model)
     logger.info(f'Loading model {str(model_path)}.')
     model = YOLO(model_path, task=task)
     return model
 
 def train(cfg: edict):
+    """Trains a model."""
     model = load_model(cfg.task, cfg.model)
     metrics = model.train(data=cfg.dataset, **cfg.training, **cfg.augmentation)
     return metrics
 
 def validate(cfg: edict, metrics = None):
+    """Validates a model, either after training or from a model's weights filepath."""
     if metrics is None:
         model = load_model(cfg.task, cfg.model)
 
