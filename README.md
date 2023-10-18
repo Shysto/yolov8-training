@@ -46,6 +46,11 @@ By providing the facultative `--use_multi_gpus` option, you can enable (if possi
 
 By providing the facultative `--save_period` option, you can save checkpoint every x epochs (disabled if < 1, default is -1).
 
+By providing the facultative `--resume` option, you can resume training from a checkpoint. <br>
+In this case, you must provide the path of the `.pth` checkpoint to resume training from to the `-m` option.
+
+By providing the facultative `--pretrained` option, you can specify a model to load weights from in order to fine-tune it.
+
 By providing the facultative `--config` option, you can specify a JSON configuration file (default is [`./configs/default.json`](./configs/default.json)). <br>
 More details can be found in the section [Configuration](#configuration).
 
@@ -64,7 +69,7 @@ The following training tasks are supported (values for the `-t` option):
 
 More details about these tasks can be found on the [official website of Ultralytics](https://docs.ultralytics.com/tasks/).
 
-The following models are supported (values for the `-m` option):
+The following models are supported by default (values for the `-m` option):
 - YOLOv8 nano: `'YOLOv8n'`
 - YOLOv8 small: `'YOLOv8s'`
 - YOLOv8 medium: `'YOLOv8m'`
@@ -209,3 +214,4 @@ For more details about these configuration files, the default configuration file
 - [Ultralytics - Configuration](https://docs.ultralytics.com/usage/cfg/)
 - [Ultralytics - Model](https://docs.ultralytics.com/reference/engine/model/)
 - [Ultralytics - Datasets](https://docs.ultralytics.com/datasets/)
+- [Ultralytics - Metrics](https://docs.ultralytics.com/reference/utils/metrics/)

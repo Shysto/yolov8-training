@@ -1,0 +1,3 @@
+# Weights
+
+Please, upload your models here (models supported by default will be automatically downloaded if not found).

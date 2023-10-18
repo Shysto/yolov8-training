@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+"""Provides log related functions."""
+
 from logging import Logger, getLogger, basicConfig
 
 from config import LOG_FILENAME, LOG_FORMAT, LOG_LEVEL

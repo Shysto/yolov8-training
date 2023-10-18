@@ -1,8 +1,12 @@
 .python-version
+.vscode
 
 __pycache__
 
 weights/*
+!weights/INFO.txt
+
 datasets/*
+!datasets/INFO.txt
 
 *.yaml

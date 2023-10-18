@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+"""Provides configuration related parameters."""
 
 from pathlib import Path
 
@@ -66,3 +68,5 @@ SUPPORTED_OPTIMIZERS = (
     'RMSProp',
     'auto'
 )
+
+METRICS = ("Precision", "Recall", "mAP50", "mAP50-95")

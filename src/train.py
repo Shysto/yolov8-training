@@ -1,14 +1,18 @@
+#!/usr/bin/env python
+"""Training of YOLOv8 models."""
 
 import json
-import torch
 import platform
 from pathlib import Path
 from argparse import ArgumentParser
+
+import torch
 from easydict import EasyDict as edict
 from ultralytics import YOLO, settings
 
 from log import setup_logger
 from config import *
+
 
 def load_config(cfg_file: Path) -> edict:
     cfg = edict()
@@ -72,8 +76,8 @@ def get_config() -> edict:
     ap = ArgumentParser()
     ap.add_argument('-t', '--task', type=str, required=True, choices=SUPPORTED_TASKS,
         help='Task to perform.')
-    ap.add_argument('-m', '--model', type=str, required=True, choices=SUPPORTED_MODELS,
-        help='Model to train.')
+    ap.add_argument('-m', '--model', type=str, required=True,
+        help='Model to train or path to the model to resume training from.')
     ap.add_argument('-d', '--dataset', type=str, required=True,
         help=f'Dataset folder (relative to {str(DATASET_FOLDER.absolute())}).')
     ap.add_argument('-s', '--savepath', type=str, dest='project',
@@ -137,14 +141,52 @@ def set_device(force_cpu: bool = False, use_multi_gpus: bool = True):
     return device
 
 def get_model(task: str, model: str) -> Path:
-    return WEIGHTS_FOLDER.joinpath(SUPPORTED_TASKS_AND_MODELS[task][model])
+    if Path(model).is_file():
+        return Path(model)
+
+    file = SUPPORTED_TASKS_AND_MODELS[task].get(model, None)
+    if file is None:
+        logger.error(f'Unsupported model {model}. Supported values are {SUPPORTED_MODELS}.')
+        exit(1)
+
+    return WEIGHTS_FOLDER.joinpath(file)
 
 def train(cfg: edict):
     model_path = get_model(cfg.task, cfg.model)
+    logger.info(f'Loading model {str(model_path)}.')
     model = YOLO(model_path, task=cfg.task)
     results = model.train(data=cfg.dataset, **cfg.training, **cfg.augmentation)
-    #TODO: add validation
-    #TODO: k-fold validation?
+
+    #TODO: refactor + support validation only
+    print("\n==================")
+    print("Validation summary")
+    print("==================\n")
+
+    all_class_results = {
+        "Classes": results.names,
+        "Number of classes": results.box.nc,
+        "All class metrics":
+            {
+                "Precision": results.box.mp,
+                "Recall": results.box.mr,
+                "mAP50": results.box.map50,
+                "mAP75": results.box.map75,
+                "mAP50-95": results.box.map,
+                "Fitness": results.box.fitness()
+            }
+    }
+
+    by_class_results = {
+        f"Class '{results.names[class_id]}' (ID {class_id}) metrics":
+            {
+                _key: metric for _key, metric in zip(METRICS, results.box.class_result(i))
+            }
+        for i, class_id in enumerate(sorted(results.box.ap_class_index))
+    }
+
+    all_class_results.update(by_class_results)
+    pretty_json = json.dumps(all_class_results, indent=4)
+    print(pretty_json)
 
 
 if __name__ == '__main__':
