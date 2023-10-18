@@ -29,7 +29,7 @@ def update_config(cfg: edict, args: dict) -> edict:
     keys_to_update = []
 
     for k, v in args.items():
-        if k in ['config', 'model', 'force_cpu', 'use_multi_gpus', 'task', 'dataset']:
+        if k in ['config', 'model', 'force_cpu', 'use_multi_gpus', 'task', 'dataset', 'val_only']:
             continue
 
         if type(v) == bool:
@@ -49,6 +49,7 @@ def update_config(cfg: edict, args: dict) -> edict:
     cfg['task'] = args['task']
     cfg['model'] = args['model']
     cfg['dataset'] = args['dataset']
+    cfg['val_only'] = args['val_only']
 
     return cfg
 
@@ -110,6 +111,8 @@ def get_config() -> edict:
         help='Resume training from last checkpoint.')
     ap.add_argument('--pretrained', type=str,
         help='Whether to use a pretrained model (bool) or a model to load weights from (str).')
+    ap.add_argument('--val_only', action='store_true',
+        help='Performs model validation only.')
     ap.add_argument('--config', type=str, default=str(CONFIGS_FOLDER.joinpath('default.json')),
         help='Loads configuration from JSON file.')
 
@@ -151,42 +154,69 @@ def get_model(task: str, model: str) -> Path:
 
     return WEIGHTS_FOLDER.joinpath(file)
 
-def train(cfg: edict):
-    model_path = get_model(cfg.task, cfg.model)
+def load_model(task: str, model: str):
+    model_path = get_model(task, model)
     logger.info(f'Loading model {str(model_path)}.')
-    model = YOLO(model_path, task=cfg.task)
-    results = model.train(data=cfg.dataset, **cfg.training, **cfg.augmentation)
+    model = YOLO(model_path, task=task)
+    return model
 
-    #TODO: refactor + support validation only
+def train(cfg: edict):
+    model = load_model(cfg.task, cfg.model)
+    metrics = model.train(data=cfg.dataset, **cfg.training, **cfg.augmentation)
+    return metrics
+
+def validate(cfg: edict, metrics = None):
+    if metrics is None:
+        model = load_model(cfg.task, cfg.model)
+
+        if cfg.validation.data is None:
+            cfg.validation.data = cfg.dataset
+
+        metrics = model.val(**cfg.validation)
+
     print("\n==================")
     print("Validation summary")
     print("==================\n")
 
-    all_class_results = {
-        "Classes": results.names,
-        "Number of classes": results.box.nc,
-        "All class metrics":
-            {
-                "Precision": results.box.mp,
-                "Recall": results.box.mr,
-                "mAP50": results.box.map50,
-                "mAP75": results.box.map75,
-                "mAP50-95": results.box.map,
-                "Fitness": results.box.fitness()
-            }
-    }
+    if cfg.task == 'detect':
+        all_class_metrics = {
+            "Classes": metrics.names,
+            "Number of classes": metrics.box.nc,
+            "All class metrics":
+                {
+                    "Precision": metrics.box.mp,
+                    "Recall": metrics.box.mr,
+                    "mAP50": metrics.box.map50,
+                    "mAP75": metrics.box.map75,
+                    "mAP50-95": metrics.box.map,
+                    "Fitness": metrics.box.fitness()
+                }
+        }
 
-    by_class_results = {
-        f"Class '{results.names[class_id]}' (ID {class_id}) metrics":
-            {
-                _key: metric for _key, metric in zip(METRICS, results.box.class_result(i))
-            }
-        for i, class_id in enumerate(sorted(results.box.ap_class_index))
-    }
+        by_class_metrics = {
+            f"Class '{metrics.names[class_id]}' (ID {class_id}) metrics":
+                {
+                    _key: metric for _key, metric in zip(METRICS, metrics.box.class_result(i))
+                }
+            for i, class_id in enumerate(sorted(metrics.box.ap_class_index))
+        }
 
-    all_class_results.update(by_class_results)
-    pretty_json = json.dumps(all_class_results, indent=4)
-    print(pretty_json)
+        all_class_metrics.update(by_class_metrics)
+        pretty_json = json.dumps(all_class_metrics, indent=4)
+        print(pretty_json + "\n")
+
+    elif cfg.task == 'classify':
+        all_metrics = {
+            "Top-1 accuracy": metrics.top1,
+            "Top-5 accuracy": metrics.top5,
+            "Fitness": metrics.fitness
+        }
+
+        pretty_json = json.dumps(all_metrics, indent=4)
+        print(pretty_json + "\n")
+
+    else:
+        print(f'(Validation for) task {cfg.task} is not supported.')
 
 
 if __name__ == '__main__':
@@ -195,9 +225,17 @@ if __name__ == '__main__':
     # Update Ultralytics settings
     settings.update({'weights_dir': str(WEIGHTS_FOLDER), 'datasets_dir': str(DATASET_FOLDER)})
 
+    # Load configuration
     cfg = get_config()
 
-    train(cfg)
+    metrics = None
+
+    # Training
+    if not cfg.val_only:
+        metrics = train(cfg)
+
+    # Validation
+    validate(cfg, metrics=metrics)
 
     # Reset Ultralytics settings to default values
     settings.reset()

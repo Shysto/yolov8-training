@@ -14,7 +14,7 @@ python src/train.py -t <TASK> -m <MODEL> -d <DATASET>
 The mandatory `-t` option specifies the training task (must be in `['detect', 'classify']`). <br>
 More details can be found in the section [Tasks and models (weights)](#tasks-and-models).
 
-The mandatory `-m` option specifies the model to train (must be in `['YOLOv8n', 'YOLOv8s', 'YOLOv8m', 'YOLOv8l', 'YOLOv8x']`). <br>
+The mandatory `-m` option specifies the model to train (models supported by default are `['YOLOv8n', 'YOLOv8s', 'YOLOv8m', 'YOLOv8l', 'YOLOv8x']`). or the path to a model's weights file (see options `--resume`, `--pretrained` and `--val_only`). <br>
 More details can be found in the section [Tasks and models (weights)](#tasks-and-models).
 
 The mandatory `-d` option specifies the trainin dataset (relative to [`./datasets`](./datasets/)). <br>
@@ -47,9 +47,11 @@ By providing the facultative `--use_multi_gpus` option, you can enable (if possi
 By providing the facultative `--save_period` option, you can save checkpoint every x epochs (disabled if < 1, default is -1).
 
 By providing the facultative `--resume` option, you can resume training from a checkpoint. <br>
-In this case, you must provide the path of the `.pth` checkpoint to resume training from to the `-m` option.
+In this case, you must provide the path of the checkpoint to resume training from to the `-m` option.
 
 By providing the facultative `--pretrained` option, you can specify a model to load weights from in order to fine-tune it.
+
+By providing the facultative `--val_only` option, you can validate your model (no training, the model has already been trained).
 
 By providing the facultative `--config` option, you can specify a JSON configuration file (default is [`./configs/default.json`](./configs/default.json)). <br>
 More details can be found in the section [Configuration](#configuration).
@@ -77,6 +79,8 @@ The following models are supported by default (values for the `-m` option):
 - YOLOv8 x-large: `'YOLOv8x'`
 
 The model's weights will be automatically downloaded inside the folder [`./weights`](./weights/) the first time.
+
+You can also validate, resume training, or fine tune a model from a specific checkpoint file, by providing its path using the `-m` option in combination of the `--val_only`, `--pretrained`, or `--resume` options.
 
 More details about these models can be found on the [official website of Ultralytics](https://docs.ultralytics.com/models/yolov8/).
 
