@@ -7,7 +7,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    shm_size: '2gb' # for pytorch
+    shm_size: '16gb' # for pytorch
     volumes:
       - ./weights:/app/weights
       - ./datasets:/app/datasets
