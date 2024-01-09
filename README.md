@@ -86,13 +86,6 @@ By providing the facultative `--val_only` option, you can validate your model (n
 By providing the facultative `--config` option, you can specify a JSON configuration file (default is [`./configs/default.json`](./configs/default.json)). <br>
 More details can be found in the section [Configuration](#configuration).
 
-ap.add_argument('-t', '--task', type=str, required=True, choices=SUPPORTED_TASKS,
-        help='Task to perform.')
-    ap.add_argument('-m', '--model', type=str, required=True, choices=SUPPORTED_MODELS,
-        help='Model to train.')
-    ap.add_argument('-d', '--dataset', type=str, required=True,
-        help=f'Dataset folder (relative to {str(DATASET_FOLDER.absolute())}).')
-
 ## Tasks and models
 
 The following training tasks are supported (values for the `-t` option):
