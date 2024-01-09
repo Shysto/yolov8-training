@@ -3,4 +3,16 @@
 .DS_Store
 ._*
 
+.ipynb_checkpoints
+*.ipynb
+
 __pycache__
+
+weights/*
+!weights/INFO.txt
+
+datasets/*
+!datasets/INFO.txt
+
+*.yaml
+!docker-compose.yaml
